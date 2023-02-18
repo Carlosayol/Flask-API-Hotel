@@ -1,6 +1,7 @@
 import re
 from urllib.parse import urlparse
 
+
 def has_numbers(inputString):
     """
     Check if given string contains digits
@@ -16,8 +17,9 @@ def is_valid_email(inputString):
     @param {inputString}: string
     returns: Boolean
     """
-    email_regex = '^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
+    email_regex = "^[a-z0-9]+[\._]?[a-z0-9]+[@]\w+[.]\w{2,3}$"
     return bool(re.search(email_regex, inputString))
+
 
 def is_valid_url(inputString):
     """

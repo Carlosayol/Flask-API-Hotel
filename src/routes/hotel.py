@@ -1,11 +1,10 @@
-
 import json
 import flask
-
-from bson.objectid import ObjectId
 from datetime import datetime
 from pymongo.collection import Collection, ReturnDocument
 from pymongo.errors import DuplicateKeyError
+
+from bson.objectid import ObjectId
 from src.models.pyObjectId import PyObjectId
 from src.models.hotel import Hotel
 
@@ -17,19 +16,18 @@ def create_blueprint(mongo):
     returns: Blueprint
     """
     hotels_db: Collection = mongo.db.hotel
-    hotel_endpoint = flask.Blueprint(
-        name="hotel_endpoint", import_name=__name__)
+    hotel_endpoint = flask.Blueprint(name="hotel_endpoint", import_name=__name__)
 
-    @hotel_endpoint.route('/hotels', methods=['POST'])
+    @hotel_endpoint.route("/hotels", methods=["POST"])
     def add_hotel():
         """
         POST:
-            description: 
+            description:
                 add new hotel
             request_body:
                 content:
                     application/json
-                schema: 
+                schema:
                     name: string, required
                     city: string, required
                     address: string, required
@@ -37,11 +35,11 @@ def create_blueprint(mongo):
                     image_url: string, required
             responses:
                 '200':
-                description: 
+                description:
                     hotel added succesfully
                 content:
                     application/json
-                schema: 
+                schema:
                     _id: id
                     name: string
                     city: string
@@ -51,8 +49,8 @@ def create_blueprint(mongo):
                     created_at: datetime
                     updated_at: datetime
             example_request:
-                endpoint: 
-                    http://localhost:5000/api/v1/hotels 
+                endpoint:
+                    http://localhost:5000/api/v1/hotels
                 body:
                     {
                         "name": "Hotel Prueba Bogota",
@@ -72,15 +70,15 @@ def create_blueprint(mongo):
             hotel_new = hotels_db.insert_one(hotel.to_bson_object())
             hotel.id = PyObjectId(str(hotel_new.inserted_id))
 
-            return flask.Response(hotel.to_json_object(), mimetype='application/json')
+            return flask.Response(hotel.to_json_object(), mimetype="application/json")
         else:
-            flask.abort(400, "Input data is incorrect: " + ', '.join(errors)) 
+            flask.abort(400, "Input data is incorrect: " + ", ".join(errors))
 
-    @hotel_endpoint.route('/hotels')
+    @hotel_endpoint.route("/hotels")
     def get_hotels():
         """
         GET:
-            description: 
+            description:
                 get hotels collection, including filters
             parameters:
                 name: string, optional
@@ -92,13 +90,13 @@ def create_blueprint(mongo):
                 updated_at: string, optional
             responses:
                 '200':
-                description: 
+                description:
                     list of hotel json objects
                 content:
                     application/json:
-                schema: 
+                schema:
                     [
-                        {                        
+                        {
                             _id: string
                             name: string
                             city: string
@@ -116,23 +114,26 @@ def create_blueprint(mongo):
         args = flask.request.args
         hotels_data = hotels_db.find(args.to_dict())
 
-        return flask.Response(json.dumps([Hotel(**hotel).__dict__ for hotel in hotels_data], default=str), mimetype='application/json')
+        return flask.Response(
+            json.dumps([Hotel(**hotel).__dict__ for hotel in hotels_data], default=str),
+            mimetype="application/json",
+        )
 
-    @hotel_endpoint.route('/hotels/<id>')
+    @hotel_endpoint.route("/hotels/<id>")
     def get_hotel(id):
         """
         GET:
-            description: 
+            description:
                 get hotel by id
             parameters:
                 <id>: string, required
             responses:
                 '200':
-                description: 
+                description:
                     hotel json object
                 content:
                     application/json:
-                schema: 
+                schema:
                     {
                         _id: id
                         name: string
@@ -148,25 +149,27 @@ def create_blueprint(mongo):
                     http://localhost:5000/api/v1/hotels/6247ccb203ae3b1961d16770
         """
         try:
-            hotel = hotels_db.find_one({'_id': ObjectId(id)})
+            hotel = hotels_db.find_one({"_id": ObjectId(id)})
         except:
             flask.abort(400, "ID is not valid")
 
         if hotel:
-            return flask.Response(Hotel(**hotel).to_json_object(), mimetype='application/json')
+            return flask.Response(
+                Hotel(**hotel).to_json_object(), mimetype="application/json"
+            )
         else:
             flask.abort(404, "Hotel not found")
 
-    @hotel_endpoint.route('/hotels', methods=['PUT'])
+    @hotel_endpoint.route("/hotels", methods=["PUT"])
     def update_hotel():
         """
         PUT:
-            description: 
+            description:
                 update hotel entry in db
             request_body:
                 content:
                     application/json
-                schema: 
+                schema:
                     id: string, required
                     name: string, required
                     city: string, required
@@ -175,11 +178,11 @@ def create_blueprint(mongo):
                     image_url: string, required
             responses:
                 '200':
-                description: 
+                description:
                     hotel json object
                 content:
                     application/json:
-                schema: 
+                schema:
                     {
                         _id: id
                         name: string
@@ -206,29 +209,34 @@ def create_blueprint(mongo):
         json_data = flask.request.json
         json_data["updated_at"] = datetime.utcnow()
         hotel = Hotel(**json_data)
-        hotel_updated = hotels_db.find_one_and_update({'_id': ObjectId(hotel.id)}, {
-            '$set': hotel.to_bson_object()}, return_document=ReturnDocument.AFTER)
+        hotel_updated = hotels_db.find_one_and_update(
+            {"_id": ObjectId(hotel.id)},
+            {"$set": hotel.to_bson_object()},
+            return_document=ReturnDocument.AFTER,
+        )
 
         if hotel_updated:
-            return flask.Response(Hotel(**hotel_updated).to_json_object(), mimetype='application/json')
+            return flask.Response(
+                Hotel(**hotel_updated).to_json_object(), mimetype="application/json"
+            )
         else:
             flask.abort(404, "Hotel not found")
 
-    @hotel_endpoint.route('/hotels/<id>', methods=['DELETE'])
+    @hotel_endpoint.route("/hotels/<id>", methods=["DELETE"])
     def delete_hotel(id):
         """
         DELETE:
-            description: 
+            description:
                 delete hotel by id
             parameters:
                 <id>: string, required
             responses:
                 '200':
-                description: 
+                description:
                     hotel json object
                 content:
                     application/json:
-                schema: 
+                schema:
                     {
                         _id: id
                         name: string
@@ -244,13 +252,14 @@ def create_blueprint(mongo):
                     http://localhost:5000/api/v1/hotels/6247ee27faa1d5a115e89819
         """
         try:
-            hotel_deleted = hotels_db.find_one_and_delete(
-                {'_id': ObjectId(id)})
+            hotel_deleted = hotels_db.find_one_and_delete({"_id": ObjectId(id)})
         except:
             flask.abort(400, "ID is not valid")
 
         if hotel_deleted:
-            return flask.Response(Hotel(**hotel_deleted).to_json_object(), mimetype='application/json')
+            return flask.Response(
+                Hotel(**hotel_deleted).to_json_object(), mimetype="application/json"
+            )
         else:
             flask.abort(404, "Hotel not found")
 

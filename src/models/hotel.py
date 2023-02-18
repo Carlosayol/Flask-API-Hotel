@@ -2,6 +2,7 @@ import json
 from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
+
 from src.functions import has_numbers, is_valid_email, is_valid_url
 from .pyObjectId import PyObjectId
 
@@ -11,6 +12,7 @@ class Hotel(BaseModel):
     Class for hotel schema given a basemodel object
     @param {Basemodel}: Basemodel
     """
+
     id: Optional[PyObjectId] = Field(None, alias="_id")
     name: str
     city: str
@@ -42,11 +44,11 @@ class Hotel(BaseModel):
         """
         errors = []
         if has_numbers(self.name):
-            errors.append('Name field cannot have numbers')
+            errors.append("Name field cannot have numbers")
         if has_numbers(self.city):
-            errors.append('City field cannot have numbers')
+            errors.append("City field cannot have numbers")
         if not is_valid_email(self.contact_email):
-            errors.append('Email field is not a valid email')
+            errors.append("Email field is not a valid email")
         if not is_valid_url(self.image_url):
-            errors.append('Image Url field is not a valid url')
+            errors.append("Image Url field is not a valid url")
         return errors
